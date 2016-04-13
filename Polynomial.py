@@ -1,8 +1,6 @@
 #!/usr/bin/python3
 
-import re
 import math
-import operator
 import copy
 from itertools import zip_longest
 
