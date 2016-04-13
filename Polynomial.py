@@ -3,9 +3,11 @@
 import re
 import math
 import operator
+import copy
 from itertools import zip_longest
 
 class Polynomial:
+    # function to get max index
     def getMaxIndex(self, kwargs):
         maxValue = 0
         for key, value in kwargs.items():
@@ -13,8 +15,11 @@ class Polynomial:
                 maxValue = int(key[1:])
         return maxValue
 
+    # constructor which handles all input arguments
     def __init__(self, *args, **kwargs):
         self.coeffs = []
+        
+        # parse input arguments
         for arg in args:
             if isinstance(arg, list):
                 self.coeffs.extend(arg)
@@ -29,6 +34,7 @@ class Polynomial:
     def __repr__(self):
         return "Polynomial()"
 
+    # override string "operator" which provides option to print object in specific format
     def __str__(self):
         result = ""
 
@@ -56,37 +62,38 @@ class Polynomial:
 
         return result
 
+    # override operator "+" to get sum of two polynoms represented by two objects
     def __add__(self, other):
         return Polynomial([a + b for a, b in zip_longest(self.coeffs, other.coeffs, fillvalue=0)])
 
-    def binomial_coefficient(self, n, k):
-        if (n == 0 or k == 0):
-            return 1
-        if (k > n):
-            return 0
-        if (k > (n - k)):
-            k = n - k
-        if (k == 1):
-            return n
+    # auxiliary method for multiplying polynoms
+    def multiply(self, s, v):
+        res = [0]*(len(s)+len(v)-1)
+        for selfpow,selfcoeff in enumerate(s):
+            for valpow,valcoeff in enumerate(v):
+                res[selfpow+valpow] += selfcoeff*valcoeff
 
-        return math.factorial(n) // math.factorial(k) // math.factorial(n - k)
+        return res
 
+    # override operator "**" to pow polynom of M members on N exponent
     def __pow__(self, exp):
-        result = []
-        for i in range(0, exp + 1):
-            cexp = exp - i
-            bin = self.binomial_coefficient(exp,i) * (self.coeffs[1]**cexp) * (self.coeffs[0]**i)      
-            result.insert(i, bin)
+        # make a copy of coefficients to be able to multiple together with base coefficients
+        self.result = copy.deepcopy(self.coeffs)
+        for i in range(1, exp):
+            self.result = self.multiply(self.coeffs, self.result)
+        
+        return Polynomial(self.result)
 
-        return Polynomial(result)
-
+    # derivate polynom
     def derivative(self):
         new_list = [self.coeffs[i] * i for i in range(1, len(self.coeffs))]
         return Polynomial(new_list)
 
+    # use val in polynom instead of "x" to get exact result
     def getListWithValue(self, val):
         return [value*val**key for key, value in enumerate(self.coeffs)]
 
+    # get value according to given argument(s), returning exact result, using argument instead of variable
     def at_value(self, *args):
         if (len(args) == 1):
             return sum(self.getListWithValue(int(args[0])))
@@ -94,20 +101,4 @@ class Polynomial:
             return sum(self.getListWithValue(int(args[1]))) - sum(self.getListWithValue(int(args[0])))
         else:
             print("Invalid input arguments in method at_value()")
-
-
-#pol1 = Polynomial([1,-3,0,2])
-#pol2 = Polynomial(1,-3,0,2)
-#pol3 = Polynomial(x0=1,x3=2,x1=-3)
-
-#print(Polynomial(1,-3,0,2) + Polynomial(0, 2, 1))
-
-#print(pol1)
-#print(pol2)
-#print(pol3)
-
-#print(pol1.derivative())
-#print(pol1.at_value(2,3))
-
-print(Polynomial(1, 1) ** 5)
 
